@@ -56,8 +56,8 @@ function showError(msg){
   renderBanner();
 }
 
-async function loadAll(){
-  loading = true;
+async function loadAll(showLoading){
+  if(showLoading){ loading = true; renderBoard(); }
   const { data, error } = await db.from("destinations").select("*").order("created_at", { ascending: true });
   loading = false;
   if(error){ showError("couldn't load the board — check your connection and refresh."); return; }
@@ -143,7 +143,10 @@ function renderShell(){
     '<div class="banner" id="banner" hidden></div>' +
     '<header class="topbar">' +
       '<div class="brand"><span class="brand-mark">✦</span> Twin Atlas</div>' +
-      '<button class="add-btn" id="openAddBtn">+ add an idea</button>' +
+      '<div style="display:flex; gap:8px;">' +
+        '<button class="icon-btn" id="refreshBtn" title="refresh">⟳ refresh</button>' +
+        '<button class="add-btn" id="openAddBtn">+ add an idea</button>' +
+      '</div>' +
     '</header>' +
     '<div class="controls">' +
       '<div class="tabs" id="tabs">' +
@@ -165,6 +168,7 @@ function renderShell(){
     '<footer class="credit">a brainstorm board, not a booking site — add ideas whenever inspiration hits.</footer>' +
     '<button class="fab" id="fabAddBtn" aria-label="add an idea">+</button>';
 
+  document.getElementById("refreshBtn").addEventListener("click", () => loadAll(true));
   document.getElementById("openAddBtn").addEventListener("click", () => openModal("add"));
   document.getElementById("fabAddBtn").addEventListener("click", () => openModal("add"));
   document.getElementById("tabs").addEventListener("click", e => {
@@ -464,4 +468,11 @@ function bindLinkRow(row){
 }
 
 renderShell();
-loadAll();
+loadAll(true);
+
+// reopening the home-screen app (or switching back to the tab) refetches
+// automatically, since ios often resumes a suspended page instead of reloading it
+document.addEventListener("visibilitychange", () => {
+  if(document.visibilityState === "visible") loadAll(false);
+});
+window.addEventListener("pageshow", () => loadAll(false));
