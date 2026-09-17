@@ -415,18 +415,37 @@ function renderModal(){
       '</div>' +
     '</div>';
 
+  function readFormIntoDraft(){
+    draft.place = document.getElementById("fPlace").value;
+    draft.city = document.getElementById("fCity").value;
+    draft.activities = document.getElementById("fActivities").value;
+    draft.tiktokLinks = Array.from(document.querySelectorAll("#linkRows .link-row")).map(row => ({
+      url: row.querySelector(".link-url").value,
+      label: row.querySelector(".link-label").value
+    }));
+    draft.timeframeMonth = document.getElementById("fMonth").value;
+    draft.timeframeYear = document.getElementById("fYear").value;
+    draft.timeframeNote = document.getElementById("fTimeframeNote").value;
+    draft.bestSeason = document.getElementById("fSeason").value;
+    draft.status = document.getElementById("fStatus").value;
+    draft.budget = document.getElementById("fBudget").value;
+    draft.letsDoThis = document.getElementById("fLetsDo").checked;
+  }
+
   document.getElementById("modalClose").addEventListener("click", closeModal);
   document.getElementById("modalCancel").addEventListener("click", closeModal);
   document.getElementById("overlay").addEventListener("click", e => { if(e.target.id === "overlay") closeModal(); });
   document.getElementById("regionToggle").addEventListener("click", e => {
     const btn = e.target.closest("[data-region]");
     if(!btn) return;
+    readFormIntoDraft();
     draft.region = btn.dataset.region;
     renderModal();
   });
   document.getElementById("starPicker").addEventListener("click", e => {
     const btn = e.target.closest("[data-star]");
     if(!btn) return;
+    readFormIntoDraft();
     draft.priority = Number(btn.dataset.star);
     renderModal();
   });
