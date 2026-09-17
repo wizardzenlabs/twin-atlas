@@ -18,6 +18,7 @@ let statusFilter = "all";
 let searchQuery = "";
 let letsDoOnly = false;
 let expanded = new Set();
+let expandedLinks = new Set();
 let modalState = null; // {mode:'add'|'edit', draft:{...}}
 
 function uid(){ return "d" + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -253,10 +254,17 @@ function renderBoard(){
 function renderCard(d){
   const isOpen = expanded.has(d.id);
   const comments = d.comments || [];
-  const links = (d.tiktokLinks || []).map(l =>
+  const allLinks = d.tiktokLinks || [];
+  const linksOpen = expandedLinks.has(d.id);
+  const linksToShow = linksOpen ? allLinks : allLinks.slice(0, 3);
+  const hiddenLinkCount = allLinks.length - linksToShow.length;
+  const links = linksToShow.map(l =>
     '<a class="tiktok-link" href="' + escapeAttr(l.url) + '" target="_blank" rel="noopener">' + tiktokIcon() +
     '<span class="label">' + escapeHtml(l.label || l.url) + '</span></a>'
-  ).join("");
+  ).join("") + (
+    hiddenLinkCount > 0 ? '<button class="comments-toggle" data-action="toggle-links" data-id="' + d.id + '">+ ' + hiddenLinkCount + ' more link' + (hiddenLinkCount === 1 ? "" : "s") + '</button>' :
+    (linksOpen && allLinks.length > 3 ? '<button class="comments-toggle" data-action="toggle-links" data-id="' + d.id + '">show fewer</button>' : "")
+  );
   const priorityDots = [1,2,3,4,5].map(n => '<span class="priority-dot ' + (n <= (d.priority||0) ? "on" : "") + '"></span>').join("");
   const metaBits = [];
   const tfLabel = timeframeLabel(d);
@@ -315,6 +323,9 @@ function onCardAction(e){
     if(confirm("remove this idea from the board?")) deleteDestination(id);
   }else if(action === "toggle-comments"){
     if(expanded.has(id)) expanded.delete(id); else expanded.add(id);
+    renderBoard();
+  }else if(action === "toggle-links"){
+    if(expandedLinks.has(id)) expandedLinks.delete(id); else expandedLinks.add(id);
     renderBoard();
   }
 }
